@@ -1,0 +1,1403 @@
+SECTION 1: SHELL SCRIPTING
+Q1. Shell script to redirect even numbers to 'even' file and odd numbers to 'odd' file from a list of n numbers given as input through file.
+Program:
+#!/bin/bash
+> even
+> odd
+while read n
+do
+    if [ $((n % 2)) -eq 0 ]
+    then
+        echo $n >> even
+    else
+        echo $n >> odd
+    fi
+done < numbers
+Steps to Run:
+cat > numbers
+12
+7
+9
+20
+15
+8
+(Press Ctrl+D)
+bash oddeven.sh
+cat even
+cat odd
+
+Q2. Shell script to display the smallest file name (string length) in current directory.
+Program:
+#!/bin/bash
+small=""
+for file in *
+do
+    if [ -z "$small" ] || [ ${#file} -lt ${#small} ]
+    then
+        small=$file
+    fi
+done
+echo "Smallest filename is : $small"
+
+Q3. Shell program to sort an array of numbers using bubble sort.
+Program:
+#!/bin/bash
+echo "Enter number of elements"
+read n
+for((i=0;i<n;i++))
+do
+    read arr[$i]
+done
+for((i=0;i<n;i++))
+do
+    for((j=i+1;j<n;j++))
+    do
+        if [ ${arr[$i]} -gt ${arr[$j]} ]
+        then
+            temp=${arr[$i]}
+            arr[$i]=${arr[$j]}
+            arr[$j]=$temp
+        fi
+    done
+done
+echo "Sorted Array:"
+for((i=0;i<n;i++))
+do
+    echo ${arr[$i]}
+done
+
+Q4. Shell program to check whether given number is prime or not. Also print the reverse of the given number.
+Program:
+#!/bin/bash
+echo "Enter a number"
+read n
+rev=0
+temp=$n
+while [ $temp -ne 0 ]
+do
+    digit=$((temp % 10))
+    rev=$((rev * 10 + digit))
+    temp=$((temp / 10))
+done
+echo "Reverse: $rev"
+flag=0
+i=2
+while [ $i -le $((n/2)) ]
+do
+    if [ $((n % i)) -eq 0 ]
+    then
+        flag=1
+        break
+    fi
+    i=$((i+1))
+done
+if [ $flag -eq 0 ]
+then
+    echo "$n is Prime"
+else
+    echo "$n is Not Prime"
+fi
+
+Q5. Shell script to print sum of n even numbers. Limit entered through command line arguments (using functions).
+Program:
+#!/bin/bash
+sum_even()
+{
+    n=$1
+    sum=0
+    count=0
+    num=2
+    while [ $count -lt $n ]
+    do
+        sum=$((sum + num))
+        num=$((num + 2))
+        count=$((count + 1))
+    done
+    echo "Sum of $n even numbers = $sum"
+}
+sum_even $1
+How to run:
+bash evensum.sh 5
+
+Q6. Shell program to convert decimal to binary and binary to decimal.
+Program:
+#!/bin/bash
+echo "Enter 1 for Decimal to Binary"
+echo "Enter 2 for Binary to Decimal"
+read choice
+if [ $choice -eq 1 ]
+then
+    echo "Enter decimal number"
+    read n
+    result=0
+    pow=1
+    while [ $n -gt 0 ]
+    do
+        rem=$((n % 2))
+        result=$((result + rem * pow))
+        pow=$((pow * 10))
+        n=$((n / 2))
+    done
+    echo "Binary: $result"
+else
+    echo "Enter binary number"
+    read n
+    dec=0
+    pow=1
+    while [ $n -gt 0 ]
+    do
+        rem=$((n % 10))
+        dec=$((dec + rem * pow))
+        pow=$((pow * 2))
+        n=$((n / 10))
+    done
+    echo "Decimal: $dec"
+fi
+
+Q7. Shell script to enter name and 3 subject marks, calculate total, percentage and print class.
+Program:
+#!/bin/bash
+echo "Enter student name"
+read name
+echo "Enter marks of 3 subjects"
+read m1 m2 m3
+total=$((m1 + m2 + m3))
+per=$((total / 3))
+echo "Name: $name"
+echo "Total: $total"
+echo "Percentage: $per"
+if [ $per -ge 60 ]
+then
+    echo "First Class"
+elif [ $per -ge 50 ]
+then
+    echo "Second Class"
+elif [ $per -ge 40 ]
+then
+    echo "Pass Class"
+else
+    echo "Fail"
+fi
+
+Q8. Shell script to check and count occurrence of a substring in given string using command line arguments.
+Program:
+#!/bin/bash
+string=$1
+sub=$2
+count=0
+temp=$string
+while true
+do
+    rest=${temp#*$sub}
+    if [ ${#rest} -eq ${#temp} ]
+    then
+        break
+    fi
+    count=$((count + 1))
+    temp=$rest
+done
+if [ $count -gt 0 ]
+then
+    echo "Substring found"
+    echo "Occurrences: $count"
+else
+    echo "Substring not found"
+fi
+How to run:
+bash substring.sh "hello world hello" "hello"
+
+SECTION 2: LINUX COMMANDS
+Q9. Linux Commands – Set A
+i. Redirect output of ls to outfile:
+ls > outfile
+ii. Select lines with digit and redirect to list:
+grep '[0-9]' outfile > list
+iii. Execute permission to owner, remove read from other (relative):
+chmod u+x,o-r test
+iv. Create alias rm that always deletes interactively:
+alias rm='rm -i'
+v. Count currently logged in users:
+who | wc -l
+
+Q10. Linux Commands – Set B
+i. Redirect output of cat to outfile:
+cat file1 > outfile
+ii. List all hidden files and store in hidden:
+ls -a > hidden
+iii. Write to owner, remove execute from other for test (absolute):
+chmod 620 test
+iv. Create soft and hard link:
+ln file1 hardlink
+ln -s file1 softlink
+v. Convert lowercase to uppercase:
+tr 'a-z' 'A-Z' < outfile
+vi. Extract 1st and 10th character:
+cut -c1,10 outfile
+vii. Display how many times lines are repeated:
+sort outfile | uniq -c
+
+Q11. Linux Commands – Set C (cp, 4-letter words, relative permissions)
+i. Redirect output of cp to outfile:
+cp file1 file2 && ls > outfile
+ii. Select lines with 4-letter words and redirect to list:
+grep -o '\b[a-zA-Z]\{4\}\b' outfile > list
+iii. Write to owner, remove read from group (relative):
+chmod u+w,g-r test
+iv. Create alias ls to list all including hidden:
+alias ls='ls -a'
+v. Count words in list file:
+wc -w list
+
+Q12. Linux Commands – Set D (mv, hidden, absolute, links)
+i. Redirect output of mv to outfile:
+mv file1 file2 2>&1 | tee outfile
+ii. List all hidden files and store in hidden:
+ls -a > hidden
+iii. Write to group, remove execute from owner (absolute):
+chmod 560 test
+iv. Create soft and hard link:
+ln file1 hardlink
+ln -s file1 softlink
+v. Convert lowercase to uppercase:
+tr 'a-z' 'A-Z' < outfile
+vi. Extract 2nd and 3rd character:
+cut -c2,3 outfile
+vii. Display how many times lines repeated:
+sort outfile | uniq -c
+
+Q13. Linux Commands – Set E (grep, execute other, remove write group)
+i. Redirect output of grep to outfile:
+grep 'pattern' file1 > outfile
+ii. Select lines with digit and redirect to list:
+grep '[0-9]' outfile > list
+iii. Execute permission to other, remove write from group (relative):
+chmod o+x,g-w test
+iv. Create alias rm that deletes interactively:
+alias rm='rm -i'
+v. Count currently logged in users:
+who | wc -l
+
+Q14. Linux Commands – Set F (head command)
+i. Redirect output of head to outfile:
+head file1 > outfile
+ii. List all hidden files and store in hidden:
+ls -a > hidden
+iii. Write to owner, remove execute from other (absolute):
+chmod 620 test
+iv. Create soft and hard link:
+ln file1 hardlink
+ln -s file1 softlink
+v. Convert lowercase to uppercase:
+tr 'a-z' 'A-Z' < outfile
+vi. Extract 1st and 10th character:
+cut -c1,10 outfile
+vii. Display how many times lines repeated:
+sort outfile | uniq -c
+
+SECTION 3: SYNCHRONIZATION PROBLEMS
+Q15. Reader-Writer Problem using Mutex
+Program:
+#include<stdio.h>
+#include<pthread.h>
+#include<semaphore.h>
+
+sem_t wrt;
+pthread_mutex_t mutex;
+int cnt=1;
+int numreader=0;
+
+void *writer(void *wno)
+{
+    sem_wait(&wrt);
+    cnt=cnt*2;
+    printf("Writer modified cnt to %d\n",cnt);
+    sem_post(&wrt);
+}
+
+void *reader(void *rno)
+{
+    pthread_mutex_lock(&mutex);
+    numreader++;
+    if(numreader==1)
+        sem_wait(&wrt);
+    pthread_mutex_unlock(&mutex);
+
+    printf("Reader reads cnt as %d\n",cnt);
+
+    pthread_mutex_lock(&mutex);
+    numreader--;
+    if(numreader==0)
+        sem_post(&wrt);
+    pthread_mutex_unlock(&mutex);
+}
+
+int main()
+{
+    pthread_t read[5],write[5];
+    pthread_mutex_init(&mutex,NULL);
+    sem_init(&wrt,0,1);
+    for(int i=0;i<5;i++)
+    {
+        pthread_create(&write[i],NULL,writer,NULL);
+        pthread_create(&read[i],NULL,reader,NULL);
+    }
+    for(int i=0;i<5;i++)
+    {
+        pthread_join(write[i],NULL);
+        pthread_join(read[i],NULL);
+    }
+}
+
+Q16. Reader-Writer Problem using Semaphore
+Program:
+#include<stdio.h>
+#include<pthread.h>
+#include<semaphore.h>
+
+sem_t wrt,mutex;
+int cnt=1;
+int numreader=0;
+
+void *writer(void *wno)
+{
+    sem_wait(&wrt);
+    cnt=cnt*2;
+    printf("Writer modified cnt to %d\n",cnt);
+    sem_post(&wrt);
+}
+
+void *reader(void *rno)
+{
+    sem_wait(&mutex);
+    numreader++;
+    if(numreader==1)
+        sem_wait(&wrt);
+    sem_post(&mutex);
+
+    printf("Reader reads cnt as %d\n",cnt);
+
+    sem_wait(&mutex);
+    numreader--;
+    if(numreader==0)
+        sem_post(&wrt);
+    sem_post(&mutex);
+}
+
+int main()
+{
+    pthread_t read[5],write[5];
+    sem_init(&mutex,0,1);
+    sem_init(&wrt,0,1);
+    for(int i=0;i<5;i++)
+    {
+        pthread_create(&write[i],NULL,writer,NULL);
+        pthread_create(&read[i],NULL,reader,NULL);
+    }
+    for(int i=0;i<5;i++)
+    {
+        pthread_join(write[i],NULL);
+        pthread_join(read[i],NULL);
+    }
+}
+
+Q17. Producer-Consumer Problem using Semaphore
+Program:
+#include<stdio.h>
+#include<pthread.h>
+#include<semaphore.h>
+
+sem_t full,empty;
+pthread_mutex_t mutex;
+int buffer=0;
+
+void *producer()
+{
+    sem_wait(&empty);
+    pthread_mutex_lock(&mutex);
+    buffer++;
+    printf("Produced %d\n",buffer);
+    pthread_mutex_unlock(&mutex);
+    sem_post(&full);
+}
+
+void *consumer()
+{
+    sem_wait(&full);
+    pthread_mutex_lock(&mutex);
+    printf("Consumed %d\n",buffer);
+    buffer--;
+    pthread_mutex_unlock(&mutex);
+    sem_post(&empty);
+}
+
+int main()
+{
+    pthread_t p,c;
+    sem_init(&full,0,0);
+    sem_init(&empty,0,1);
+    pthread_mutex_init(&mutex,NULL);
+    pthread_create(&p,NULL,producer,NULL);
+    pthread_create(&c,NULL,consumer,NULL);
+    pthread_join(p,NULL);
+    pthread_join(c,NULL);
+}
+
+Q18. Producer-Consumer Problem using Mutex
+Program:
+#include<stdio.h>
+#include<pthread.h>
+#include<semaphore.h>
+
+pthread_mutex_t mutex;
+pthread_cond_t full,empty;
+int buffer=0;
+int capacity=5;
+
+void *producer()
+{
+    pthread_mutex_lock(&mutex);
+    while(buffer==capacity)
+        pthread_cond_wait(&empty,&mutex);
+    buffer++;
+    printf("Produced %d\n",buffer);
+    pthread_cond_signal(&full);
+    pthread_mutex_unlock(&mutex);
+}
+
+void *consumer()
+{
+    pthread_mutex_lock(&mutex);
+    while(buffer==0)
+        pthread_cond_wait(&full,&mutex);
+    printf("Consumed %d\n",buffer);
+    buffer--;
+    pthread_cond_signal(&empty);
+    pthread_mutex_unlock(&mutex);
+}
+
+int main()
+{
+    pthread_t p,c;
+    pthread_mutex_init(&mutex,NULL);
+    pthread_cond_init(&full,NULL);
+    pthread_cond_init(&empty,NULL);
+    pthread_create(&p,NULL,producer,NULL);
+    pthread_create(&c,NULL,consumer,NULL);
+    pthread_join(p,NULL);
+    pthread_join(c,NULL);
+}
+
+Q19. Dining Philosopher Problem using Semaphore
+Program:
+#include<stdio.h>
+#include<pthread.h>
+#include<semaphore.h>
+
+sem_t chopstick[5];
+
+void *philosopher(void *num)
+{
+    int id=*(int *)num;
+    sem_wait(&chopstick[id]);
+    sem_wait(&chopstick[(id+1)%5]);
+    printf("Philosopher %d is eating\n",id);
+    sem_post(&chopstick[id]);
+    sem_post(&chopstick[(id+1)%5]);
+}
+
+int main()
+{
+    pthread_t p[5];
+    int id[5];
+    for(int i=0;i<5;i++)
+        sem_init(&chopstick[i],0,1);
+    for(int i=0;i<5;i++)
+    {
+        id[i]=i;
+        pthread_create(&p[i],NULL,philosopher,&id[i]);
+    }
+    for(int i=0;i<5;i++)
+        pthread_join(p[i],NULL);
+}
+
+SECTION 4: CPU SCHEDULING
+Q20. FCFS and SJF Preemptive (SRTF) Scheduling
+Process Table: P0(AT=0,BT=5), P1(AT=1,BT=3), P2(AT=2,BT=8), P3(AT=3,BT=6)
+
+Gantt Chart – FCFS:
+P0     P1   P2        P3
+0------5----8---------16--------22
+
+CT:  P0=5  P1=8  P2=16  P3=22
+TAT: P0=5  P1=7  P2=14  P3=19
+WT:  P0=0  P1=4  P2=6   P3=13
+
+Gantt Chart – SRTF (Preemptive SJF):
+P0  P1  P2  P1  P0  P3       P2
+0---1---2---3---5---6--------14-----
+
+CT:  P0=6  P1=5  P2=22  P3=14
+TAT: P0=6  P1=4  P2=20  P3=11
+WT:  P0=1  P1=1  P2=12  P3=5
+
+FCFS Program:
+#include<stdio.h>
+
+int main()
+{
+    int n,at[10],bt[10],ct[10],tat[10],wt[10];
+    printf("Enter number of processes");
+    scanf("%d",&n);
+    for(int i=0;i<n;i++)
+        scanf("%d%d",&at[i],&bt[i]);
+    int cur=0;
+    for(int i=0;i<n;i++)
+    {
+        if(cur<at[i]) cur=at[i];
+        cur+=bt[i];
+        ct[i]=cur;
+        tat[i]=ct[i]-at[i];
+        wt[i]=tat[i]-bt[i];
+    }
+    printf("P\tAT\tBT\tCT\tTAT\tWT\n");
+    for(int i=0;i<n;i++)
+        printf("%d\t%d\t%d\t%d\t%d\t%d\n",i,at[i],bt[i],ct[i],tat[i],wt[i]);
+}
+
+SRTF Program:
+#include<stdio.h>
+
+int main()
+{
+    int n,at[10],bt[10],rt[10],ct[10],tat[10],wt[10];
+    printf("Enter number of processes");
+    scanf("%d",&n);
+    for(int i=0;i<n;i++)
+    {
+        scanf("%d%d",&at[i],&bt[i]);
+        rt[i]=bt[i];
+    }
+    int done=0,cur=0;
+    while(done<n)
+    {
+        int s=-1,mn=9999;
+        for(int i=0;i<n;i++)
+            if(at[i]<=cur&&rt[i]>0&&rt[i]<mn)
+            { mn=rt[i]; s=i; }
+        if(s==-1){ cur++; continue; }
+        rt[s]--;
+        cur++;
+        if(rt[s]==0)
+        {
+            ct[s]=cur;
+            tat[s]=ct[s]-at[s];
+            wt[s]=tat[s]-bt[s];
+            done++;
+        }
+    }
+    printf("P\tAT\tBT\tCT\tTAT\tWT\n");
+    for(int i=0;i<n;i++)
+        printf("%d\t%d\t%d\t%d\t%d\t%d\n",i,at[i],bt[i],ct[i],tat[i],wt[i]);
+}
+
+Q21. FCFS and Round Robin Scheduling
+Process Table: P0(AT=0,BT=5), P1(AT=1,BT=3), P2(AT=2,BT=8), P3(AT=3,BT=6)
+
+Gantt Chart – Round Robin (TQ=2):
+P0  P1  P2  P3  P0  P1  P2  P3  P2  P3
+0---2---4---6---8--10--11--13--15--17--19--21--22
+
+CT:  P0=11  P1=11  P2=22  P3=21
+TAT: P0=11  P1=10  P2=20  P3=18
+WT:  P0=6   P1=7   P2=12  P3=12
+
+Round Robin Program:
+#include<stdio.h>
+
+int main()
+{
+    int n,tq,at[10],bt[10],rt[10],ct[10],tat[10],wt[10];
+    printf("Enter number of processes and time quantum");
+    scanf("%d%d",&n,&tq);
+    for(int i=0;i<n;i++)
+    {
+        scanf("%d%d",&at[i],&bt[i]);
+        rt[i]=bt[i];
+    }
+    int cur=0,done=0;
+    while(done<n)
+    {
+        int fl=0;
+        for(int i=0;i<n;i++)
+        {
+            if(rt[i]>0&&at[i]<=cur)
+            {
+                fl=1;
+                if(rt[i]>tq){ cur+=tq; rt[i]-=tq; }
+                else
+                {
+                    cur+=rt[i]; rt[i]=0;
+                    ct[i]=cur; tat[i]=ct[i]-at[i];
+                    wt[i]=tat[i]-bt[i]; done++;
+                }
+            }
+        }
+        if(!fl) cur++;
+    }
+    printf("P\tAT\tBT\tCT\tTAT\tWT\n");
+    for(int i=0;i<n;i++)
+        printf("%d\t%d\t%d\t%d\t%d\t%d\n",i,at[i],bt[i],ct[i],tat[i],wt[i]);
+}
+
+Q22. Priority Scheduling (Non-Preemptive and Preemptive)
+Process Table: P0(AT=0,BT=5,Pri=1), P1(AT=1,BT=3,Pri=2), P2(AT=2,BT=8,Pri=1), P3(AT=3,BT=6,Pri=3)
+
+Gantt Chart – Priority Non-Preemptive (lower number = higher priority):
+P0     P2        P1  P3
+0------5---------13--16------22
+
+CT:  P0=5  P1=16  P2=13  P3=22
+TAT: P0=5  P1=15  P2=11  P3=19
+WT:  P0=0  P1=12  P2=3   P3=13
+
+Priority Non-Preemptive Program:
+#include<stdio.h>
+
+int main()
+{
+    int n,at[10],bt[10],pr[10],ct[10],tat[10],wt[10],done[10];
+    printf("Enter number of processes");
+    scanf("%d",&n);
+    for(int i=0;i<n;i++)
+    { scanf("%d%d%d",&at[i],&bt[i],&pr[i]); done[i]=0; }
+    int cur=0,cnt=0;
+    while(cnt<n)
+    {
+        int s=-1,bp=9999;
+        for(int i=0;i<n;i++)
+            if(!done[i]&&at[i]<=cur&&pr[i]<bp)
+            { bp=pr[i]; s=i; }
+        if(s==-1){ cur++; continue; }
+        cur+=bt[s];
+        ct[s]=cur; tat[s]=ct[s]-at[s];
+        wt[s]=tat[s]-bt[s]; done[s]=1; cnt++;
+    }
+    printf("P\tAT\tBT\tPR\tCT\tTAT\tWT\n");
+    for(int i=0;i<n;i++)
+        printf("%d\t%d\t%d\t%d\t%d\t%d\t%d\n",i,at[i],bt[i],pr[i],ct[i],tat[i],wt[i]);
+}
+
+Q23. SJF Non-Preemptive and SJF Preemptive (SRTF)
+Process Table: P0(AT=0,BT=5), P1(AT=1,BT=3), P2(AT=2,BT=8), P3(AT=3,BT=6)
+
+Gantt Chart – SJF Non-Preemptive:
+P0     P1   P3      P2
+0------5----8-------14--------22
+
+CT:  P0=5  P1=8  P2=22  P3=14
+TAT: P0=5  P1=7  P2=20  P3=11
+WT:  P0=0  P1=4  P2=12  P3=5
+
+SJF Non-Preemptive Program:
+#include<stdio.h>
+
+int main()
+{
+    int n,at[10],bt[10],ct[10],tat[10],wt[10],done[10];
+    printf("Enter number of processes");
+    scanf("%d",&n);
+    for(int i=0;i<n;i++)
+    { scanf("%d%d",&at[i],&bt[i]); done[i]=0; }
+    int cur=0,cnt=0;
+    while(cnt<n)
+    {
+        int s=-1,mb=9999;
+        for(int i=0;i<n;i++)
+            if(!done[i]&&at[i]<=cur&&bt[i]<mb)
+            { mb=bt[i]; s=i; }
+        if(s==-1){ cur++; continue; }
+        cur+=bt[s];
+        ct[s]=cur; tat[s]=ct[s]-at[s];
+        wt[s]=tat[s]-bt[s]; done[s]=1; cnt++;
+    }
+    printf("P\tAT\tBT\tCT\tTAT\tWT\n");
+    for(int i=0;i<n;i++)
+        printf("%d\t%d\t%d\t%d\t%d\t%d\n",i,at[i],bt[i],ct[i],tat[i],wt[i]);
+}
+
+SECTION 5: DEADLOCK ALGORITHMS
+Q24. Banker's Algorithm
+Given: A=7, B=2, C=6
+
+Program:
+#include<stdio.h>
+
+int main()
+{
+    int n,m;
+    printf("Enter processes and resources");
+    scanf("%d%d",&n,&m);
+    int alloc[10][10],max[10][10],need[10][10],avail[10],finish[10],seq[10];
+    for(int i=0;i<n;i++)
+        for(int j=0;j<m;j++)
+            scanf("%d",&alloc[i][j]);
+    for(int i=0;i<n;i++)
+        for(int j=0;j<m;j++)
+            scanf("%d",&max[i][j]);
+    for(int i=0;i<m;i++)
+        scanf("%d",&avail[i]);
+    for(int i=0;i<n;i++)
+    {
+        finish[i]=0;
+        for(int j=0;j<m;j++)
+            need[i][j]=max[i][j]-alloc[i][j];
+    }
+    int cnt=0;
+    while(cnt<n)
+    {
+        int found=0;
+        for(int i=0;i<n;i++)
+        {
+            if(finish[i]==0)
+            {
+                int ok=1;
+                for(int j=0;j<m;j++)
+                    if(need[i][j]>avail[j]){ ok=0; break; }
+                if(ok)
+                {
+                    for(int j=0;j<m;j++)
+                        avail[j]+=alloc[i][j];
+                    finish[i]=1;
+                    seq[cnt++]=i;
+                    found=1;
+                }
+            }
+        }
+        if(!found){ printf("Unsafe State"); return 0; }
+    }
+    printf("Safe Sequence: ");
+    for(int i=0;i<n;i++)
+        printf("P%d ",seq[i]);
+}
+
+Safe Sequence for given input:
+Allocation:            Max:
+P0: 0 1 0              P0: 0 1 0
+P1: 2 0 0              P1: 2 0 2
+P2: 3 0 3              P2: 3 0 3
+P3: 2 1 1              P3: 2 1 1
+P4: 0 0 2              P4: 0 0 2
+
+Need = Max - Allocation
+P0: 0 0 0  P1: 0 0 2  P2: 0 0 0  P3: 0 0 0  P4: 0 0 0
+Available: 7 2 6 - Sum(Allocation) = 0 0 6
+Safe Sequence: P0 -> P2 -> P3 -> P4 -> P1
+
+Q25. Deadlock Detection Algorithm
+Program:
+#include<stdio.h>
+
+int main()
+{
+    int n,m;
+    printf("Enter processes and resources");
+    scanf("%d%d",&n,&m);
+    int alloc[10][10],req[10][10],avail[10],finish[10];
+    for(int i=0;i<n;i++)
+        for(int j=0;j<m;j++)
+            scanf("%d",&alloc[i][j]);
+    for(int i=0;i<n;i++)
+        for(int j=0;j<m;j++)
+            scanf("%d",&req[i][j]);
+    for(int i=0;i<m;i++)
+        scanf("%d",&avail[i]);
+    for(int i=0;i<n;i++)
+    {
+        finish[i]=1;
+        for(int j=0;j<m;j++)
+            if(alloc[i][j]!=0){ finish[i]=0; break; }
+    }
+    int found=1;
+    while(found)
+    {
+        found=0;
+        for(int i=0;i<n;i++)
+        {
+            if(finish[i]==0)
+            {
+                int ok=1;
+                for(int j=0;j<m;j++)
+                    if(req[i][j]>avail[j]){ ok=0; break; }
+                if(ok)
+                {
+                    for(int j=0;j<m;j++)
+                        avail[j]+=alloc[i][j];
+                    finish[i]=1;
+                    found=1;
+                }
+            }
+        }
+    }
+    int deadlock=0;
+    for(int i=0;i<n;i++)
+        if(finish[i]==0){ printf("P%d is deadlocked\n",i); deadlock=1; }
+    if(!deadlock)
+        printf("No Deadlock");
+}
+
+SECTION 6: MEMORY MANAGEMENT
+Q26. First Fit and Best Fit Memory Allocation
+Program:
+#include<stdio.h>
+
+int main()
+{
+    int nb,np,block[10],proc[10],alloc[10];
+    printf("Enter number of blocks and processes");
+    scanf("%d%d",&nb,&np);
+    int b[10];
+    for(int i=0;i<nb;i++) scanf("%d",&block[i]);
+    for(int i=0;i<np;i++) scanf("%d",&proc[i]);
+
+    for(int i=0;i<nb;i++) b[i]=block[i];
+    for(int i=0;i<np;i++) alloc[i]=-1;
+    printf("\nFirst Fit:\n");
+    for(int i=0;i<np;i++)
+        for(int j=0;j<nb;j++)
+            if(b[j]>=proc[i])
+            { alloc[i]=j; b[j]-=proc[i]; break; }
+    for(int i=0;i<np;i++)
+        if(alloc[i]!=-1) printf("P%d -> Block%d\n",i,alloc[i]);
+        else printf("P%d -> Not Allocated\n",i);
+
+    for(int i=0;i<nb;i++) b[i]=block[i];
+    for(int i=0;i<np;i++) alloc[i]=-1;
+    printf("\nBest Fit:\n");
+    for(int i=0;i<np;i++)
+    {
+        int best=-1;
+        for(int j=0;j<nb;j++)
+            if(b[j]>=proc[i]&&(best==-1||b[j]<b[best]))
+                best=j;
+        if(best!=-1){ alloc[i]=best; b[best]-=proc[i]; }
+    }
+    for(int i=0;i<np;i++)
+        if(alloc[i]!=-1) printf("P%d -> Block%d\n",i,alloc[i]);
+        else printf("P%d -> Not Allocated\n",i);
+}
+
+Q27. Next Fit and Worst Fit Memory Allocation
+Program:
+#include<stdio.h>
+
+int main()
+{
+    int nb,np,block[10],proc[10],alloc[10];
+    printf("Enter number of blocks and processes");
+    scanf("%d%d",&nb,&np);
+    int b[10];
+    for(int i=0;i<nb;i++) scanf("%d",&block[i]);
+    for(int i=0;i<np;i++) scanf("%d",&proc[i]);
+
+    for(int i=0;i<nb;i++) b[i]=block[i];
+    for(int i=0;i<np;i++) alloc[i]=-1;
+    int last=0;
+    printf("\nNext Fit:\n");
+    for(int i=0;i<np;i++)
+    {
+        int cnt=0,j=last;
+        while(cnt<nb)
+        {
+            if(b[j]>=proc[i]){ alloc[i]=j; b[j]-=proc[i]; last=j; break; }
+            j=(j+1)%nb; cnt++;
+        }
+    }
+    for(int i=0;i<np;i++)
+        if(alloc[i]!=-1) printf("P%d -> Block%d\n",i,alloc[i]);
+        else printf("P%d -> Not Allocated\n",i);
+
+    for(int i=0;i<nb;i++) b[i]=block[i];
+    for(int i=0;i<np;i++) alloc[i]=-1;
+    printf("\nWorst Fit:\n");
+    for(int i=0;i<np;i++)
+    {
+        int worst=-1;
+        for(int j=0;j<nb;j++)
+            if(b[j]>=proc[i]&&(worst==-1||b[j]>b[worst]))
+                worst=j;
+        if(worst!=-1){ alloc[i]=worst; b[worst]-=proc[i]; }
+    }
+    for(int i=0;i<np;i++)
+        if(alloc[i]!=-1) printf("P%d -> Block%d\n",i,alloc[i]);
+        else printf("P%d -> Not Allocated\n",i);
+}
+
+Q28. Buddy System
+Program:
+#include<stdio.h>
+
+int nextpow(int n)
+{
+    int p=1;
+    while(p<n) p*=2;
+    return p;
+}
+
+int main()
+{
+    int mem,req;
+    printf("Enter total memory and process size");
+    scanf("%d%d",&mem,&req);
+    int allocated=nextpow(req);
+    printf("Requested: %d\n",req);
+    printf("Allocated (nearest power of 2): %d\n",allocated);
+    printf("Internal Fragmentation: %d\n",allocated-req);
+    int block=mem;
+    printf("Splitting: ");
+    while(block>allocated)
+    {
+        block/=2;
+        printf("%d ",block);
+    }
+    printf("\nAllocated block of size: %d\n",allocated);
+}
+
+SECTION 7: PAGE REPLACEMENT ALGORITHMS
+Q29. FIFO and LRU Page Replacement
+Program:
+#include<stdio.h>
+
+int main()
+{
+    int pages[50],frame[10],n,f;
+    printf("Enter number of pages and frames");
+    scanf("%d%d",&n,&f);
+    for(int i=0;i<n;i++) scanf("%d",&pages[i]);
+
+    for(int i=0;i<f;i++) frame[i]=-1;
+    int idx=0,fault=0;
+    printf("\nFIFO:\n");
+    for(int i=0;i<n;i++)
+    {
+        int found=0;
+        for(int j=0;j<f;j++)
+            if(frame[j]==pages[i]){ found=1; break; }
+        if(!found)
+        {
+            frame[idx]=pages[i];
+            idx=(idx+1)%f;
+            fault++;
+        }
+    }
+    printf("FIFO Page Faults = %d\n",fault);
+
+    for(int i=0;i<f;i++) frame[i]=-1;
+    int recent[10]={0};
+    fault=0; int time=0;
+    printf("\nLRU:\n");
+    for(int i=0;i<n;i++)
+    {
+        int found=0;
+        for(int j=0;j<f;j++)
+            if(frame[j]==pages[i]){ found=1; recent[j]=time; break; }
+        if(!found)
+        {
+            int empty=-1;
+            for(int j=0;j<f;j++)
+                if(frame[j]==-1){ empty=j; break; }
+            if(empty!=-1)
+            { frame[empty]=pages[i]; recent[empty]=time; }
+            else
+            {
+                int lru=0;
+                for(int j=1;j<f;j++)
+                    if(recent[j]<recent[lru]) lru=j;
+                frame[lru]=pages[i]; recent[lru]=time;
+            }
+            fault++;
+        }
+        time++;
+    }
+    printf("LRU Page Faults = %d\n",fault);
+}
+
+Q30. FIFO and Optimal Page Replacement
+Program:
+#include<stdio.h>
+
+int main()
+{
+    int pages[50],frame[10],n,f;
+    printf("Enter number of pages and frames");
+    scanf("%d%d",&n,&f);
+    for(int i=0;i<n;i++) scanf("%d",&pages[i]);
+
+    for(int i=0;i<f;i++) frame[i]=-1;
+    int idx=0,fault=0;
+    printf("FIFO Page Faults: ");
+    for(int i=0;i<n;i++)
+    {
+        int found=0;
+        for(int j=0;j<f;j++)
+            if(frame[j]==pages[i]){ found=1; break; }
+        if(!found){ frame[idx]=pages[i]; idx=(idx+1)%f; fault++; }
+    }
+    printf("%d\n",fault);
+
+    for(int i=0;i<f;i++) frame[i]=-1;
+    fault=0;
+    printf("Optimal Page Faults: ");
+    for(int i=0;i<n;i++)
+    {
+        int found=0;
+        for(int j=0;j<f;j++)
+            if(frame[j]==pages[i]){ found=1; break; }
+        if(!found)
+        {
+            int empty=-1;
+            for(int j=0;j<f;j++)
+                if(frame[j]==-1){ empty=j; break; }
+            if(empty!=-1) frame[empty]=pages[i];
+            else
+            {
+                int far=0;
+                int ri=-1;
+                for(int j=0;j<f;j++)
+                {
+                    int nu=9999;
+                    for(int k=i+1;k<n;k++)
+                        if(frame[j]==pages[k]){ nu=k; break; }
+                    if(nu>far){ far=nu; ri=j; }
+                }
+                frame[ri]=pages[i];
+            }
+            fault++;
+        }
+    }
+    printf("%d\n",fault);
+}
+
+SECTION 8: DISK SCHEDULING ALGORITHMS
+Q31. FCFS and SCAN Disk Scheduling
+Program:
+#include<stdio.h>
+#include<stdlib.h>
+
+int main()
+{
+    int req[50],n,head,disk;
+    printf("Enter number of requests, head position, disk size");
+    scanf("%d%d%d",&n,&head,&disk);
+    for(int i=0;i<n;i++) scanf("%d",&req[i]);
+
+    int seek=0,cur=head;
+    printf("\nFCFS Sequence: %d",head);
+    for(int i=0;i<n;i++)
+    {
+        seek+=abs(req[i]-cur);
+        cur=req[i];
+        printf(" -> %d",cur);
+    }
+    printf("\nFCFS Total Seek = %d\n",seek);
+
+    int r[50];
+    for(int i=0;i<n;i++) r[i]=req[i];
+    for(int i=0;i<n-1;i++)
+        for(int j=i+1;j<n;j++)
+            if(r[i]>r[j]){ int t=r[i]; r[i]=r[j]; r[j]=t; }
+    int idx=0;
+    for(int i=0;i<n;i++) if(r[i]>head){ idx=i; break; }
+    seek=0; cur=head;
+    printf("\nSCAN Sequence: %d",head);
+    for(int i=idx;i<n;i++)
+    { seek+=abs(r[i]-cur); cur=r[i]; printf(" -> %d",cur); }
+    seek+=abs((disk-1)-cur); cur=disk-1; printf(" -> %d",cur);
+    for(int i=idx-1;i>=0;i--)
+    { seek+=abs(r[i]-cur); cur=r[i]; printf(" -> %d",cur); }
+    printf("\nSCAN Total Seek = %d\n",seek);
+}
+
+Q32. SSTF and C-SCAN Disk Scheduling
+Program:
+#include<stdio.h>
+#include<stdlib.h>
+
+int main()
+{
+    int req[50],n,head,disk;
+    printf("Enter number of requests, head position, disk size");
+    scanf("%d%d%d",&n,&head,&disk);
+    for(int i=0;i<n;i++) scanf("%d",&req[i]);
+
+    int vis[50]={0},seek=0,cur=head;
+    printf("\nSSTF Sequence: %d",head);
+    for(int k=0;k<n;k++)
+    {
+        int mn=9999,s=-1;
+        for(int i=0;i<n;i++)
+            if(!vis[i]&&abs(req[i]-cur)<mn)
+            { mn=abs(req[i]-cur); s=i; }
+        seek+=mn; cur=req[s]; vis[s]=1;
+        printf(" -> %d",cur);
+    }
+    printf("\nSSTF Total Seek = %d\n",seek);
+
+    int r[50];
+    for(int i=0;i<n;i++) r[i]=req[i];
+    for(int i=0;i<n-1;i++)
+        for(int j=i+1;j<n;j++)
+            if(r[i]>r[j]){ int t=r[i]; r[i]=r[j]; r[j]=t; }
+    int idx=0;
+    for(int i=0;i<n;i++) if(r[i]>head){ idx=i; break; }
+    seek=0; cur=head;
+    printf("\nC-SCAN Sequence: %d",head);
+    for(int i=idx;i<n;i++)
+    { seek+=abs(r[i]-cur); cur=r[i]; printf(" -> %d",cur); }
+    seek+=abs((disk-1)-cur); cur=disk-1; printf(" -> %d",cur);
+    seek+=(disk-1); cur=0; printf(" -> 0");
+    for(int i=0;i<idx;i++)
+    { seek+=abs(r[i]-cur); cur=r[i]; printf(" -> %d",cur); }
+    printf("\nC-SCAN Total Seek = %d\n",seek);
+}
+
+SECTION 9: ADDRESS TRANSLATION
+Q33. Paging Address Translation
+Formula:
+Page Number  = Logical Address / Page Size
+Offset       = Logical Address % Page Size
+Physical Address = Frame Number x Page Size + Offset
+
+Program:
+#include<stdio.h>
+
+int main()
+{
+    int n,ps,la;
+    printf("Enter page size and number of pages");
+    scanf("%d%d",&ps,&n);
+    int pt[10];
+    printf("Enter frame numbers for each page\n");
+    for(int i=0;i<n;i++) scanf("%d",&pt[i]);
+    printf("Enter logical address");
+    scanf("%d",&la);
+    int pn=la/ps;
+    int off=la%ps;
+    int fn=pt[pn];
+    int pa=fn*ps+off;
+    printf("Page Number  = %d\n",pn);
+    printf("Offset       = %d\n",off);
+    printf("Frame Number = %d\n",fn);
+    printf("Physical Address = %d\n",pa);
+}
+
+Example (VA=12, Page Size=10, Page Table=[11,23,05]):
+Page Number  = 12 / 10 = 1
+Offset       = 12 % 10 = 2
+Frame Number = page_table[1] = 23
+Physical Address = 23 x 10 + 2 = 232
+
+SECTION 10: MOS PROGRAMS
+Q34. MOS Program to Compare Two Strings
+User Program (input file):
+$AMJ000100010001
+GD10
+GD20
+LR10
+CR20
+BT07
+PD30
+H
+$DTA
+HELLO
+HELLO
+$END0001
+How it works:
+GD10 → Read first string into location 10
+GD20 → Read second string into location 20
+LR10 → Load register with contents of location 10
+CR20 → Compare register with contents of location 20
+BT07 → Branch if toggle=1 to instruction 07 (print 'SAME')
+PD30 → Print result ('NOT SAME')
+H    → Halt
+
+Q35. MOS Addition Program (New Instruction AD)
+User Program:
+$AMJ000100010001
+GD10
+GD20
+LR10
+AD20
+SR30
+PD30
+H
+$DTA
+0005
+0003
+$END0001
+Instruction Meaning:
+AD → New arithmetic instruction: Add register with memory location
+LR10 → Load reg = mem[10] = 5
+AD20 → reg = reg + mem[20] = 5 + 3 = 8
+SR30 → Store result 8 into mem[30]
+PD30 → Print mem[30] = 8
+
+Q36. MOS Error Handling (Opcode and Operand Error)
+Program with Errors:
+$AMJ000100010001
+GD10
+XY20
+LR10
+LRXY
+H
+$DTA
+TEST
+$END0001
+OS Error Handling Logic (C):
+#include<stdio.h>
+#include<string.h>
+
+char mem[200][4];
+char reg[4];
+int ic=0,toggle=0;
+
+int validOp(char *op)
+{
+    char *valid[]=  {"GD","PD","LR","SR","CR","BT","H "};
+    for(int i=0;i<7;i++)
+        if(strncmp(op,valid[i],2)==0) return 1;
+    return 0;
+}
+
+int validAd(char *ad)
+{
+    for(int i=0;i<2;i++)
+        if(ad[i]<'0'||ad[i]>'9') return 0;
+    return 1;
+}
+
+void execute()
+{
+    char ir[5];
+    while(1)
+    {
+        strncpy(ir,mem[ic],4); ir[4]='\0';
+        ic++;
+        if(!validOp(ir))
+        { printf("Opcode Error at IC=%d\n",ic-1); return; }
+        int addr=(ir[2]-'0')*10+(ir[3]-'0');
+        if(!validAd(ir+2))
+        { printf("Operand Error at IC=%d\n",ic-1); return; }
+        if(strncmp(ir,"GD",2)==0) scanf("%s",mem[addr]);
+        else if(strncmp(ir,"PD",2)==0) printf("%s\n",mem[addr]);
+        else if(strncmp(ir,"LR",2)==0) strncpy(reg,mem[addr],4);
+        else if(strncmp(ir,"SR",2)==0) strncpy(mem[addr],reg,4);
+        else if(strncmp(ir,"CR",2)==0)
+            toggle=(strncmp(reg,mem[addr],4)==0)?1:0;
+        else if(strncmp(ir,"BT",2)==0)
+            if(toggle) ic=addr;
+        else if(strncmp(ir,"H ",2)==0||ir[0]=='H') return;
+    }
+}
+
+int main()
+{
+    for(int i=0;i<200;i++) strcpy(mem[i],"    ");
+    ic=0;
+    strcpy(mem[0],"GD10");
+    strcpy(mem[1],"PD10");
+    strcpy(mem[2],"H   ");
+    execute();
+}
+
+Q37. MOS Time Limit and Line Limit Exceeded Error
+OS Code Logic:
+#include<stdio.h>
+#include<string.h>
+
+char mem[200][4];
+int ic=0,ttl=10,tll=5,ttc=0,llc=0;
+char reg[4];
+int toggle=0;
+
+void execute()
+{
+    char ir[5];
+    while(1)
+    {
+        if(ttc>=ttl)
+        { printf("Time Limit Exceeded\n"); return; }
+        strncpy(ir,mem[ic],4); ir[4]='\0';
+        ic++; ttc++;
+        if(strncmp(ir,"PD",2)==0)
+        {
+            if(llc>=tll)
+            { printf("Line Limit Exceeded\n"); return; }
+            int addr=(ir[2]-'0')*10+(ir[3]-'0');
+            printf("%s\n",mem[addr]);
+            llc++;
+        }
+        else if(strncmp(ir,"GD",2)==0)
+        { int addr=(ir[2]-'0')*10+(ir[3]-'0'); scanf("%s",mem[addr]); }
+        else if(strncmp(ir,"LR",2)==0)
+        { int addr=(ir[2]-'0')*10+(ir[3]-'0'); strncpy(reg,mem[addr],4); }
+        else if(strncmp(ir,"H ",2)==0||ir[0]=='H') return;
+    }
+}
+
+int main()
+{
+    for(int i=0;i<200;i++) strcpy(mem[i],"    ");
+    strcpy(mem[0],"GD10");
+    strcpy(mem[1],"PD10");
+    strcpy(mem[2],"H   ");
+    execute();
+}
+
+Q38. MOS Paging – Address Translation (VA=12, Page Size=10, Page Table=[11,23,05])
+OS Code:
+#include<stdio.h>
+
+int main()
+{
+    int pt[]={11,23,5};
+    int ps=10;
+    int va;
+    printf("Enter virtual address");
+    scanf("%d",&va);
+    int pn=va/ps;
+    int off=va%ps;
+    int fn=pt[pn];
+    int ra=fn*ps+off;
+    printf("Page Number  = %d\n",pn);
+    printf("Offset       = %d\n",off);
+    printf("Frame Number = %d\n",fn);
+    printf("Real Address = %d\n",ra);
+}
+
+For VA=12:
+Page Number  = 12/10 = 1
+Offset       = 12%10 = 2
+Frame Number = pt[1] = 23
+Real Address = 23*10+2 = 232
+
+Q39. MOS Valid and Invalid Page Fault Handling
+OS Code:
+#include<stdio.h>
+
+int main()
+{
+    int pt[]={11,23,-1};
+    int ps=10;
+    int va,pages=3;
+    printf("Enter virtual address");
+    scanf("%d",&va);
+    int pn=va/ps;
+    int off=va%ps;
+    if(pn>=pages)
+    { printf("Invalid Page Fault: Page %d does not exist\n",pn); return 0; }
+    if(pt[pn]==-1)
+    { printf("Valid Page Fault: Page %d not in memory. Loading...\n",pn); pt[pn]=5; }
+    int ra=pt[pn]*ps+off;
+    printf("Real Address = %d\n",ra);
+}
+
