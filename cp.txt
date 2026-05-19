@@ -1,0 +1,1351 @@
+Consider the virtual machine with one general purpose register of 4 bytes, instruction register of 4 bytes, instruction counter of 2 bytes & toggle register of a bit. The instruction set consists of 7 instructions of 4 bytes each. (GD, PD, LR, SR, CR, BT & H). Consider the main memory of 200 words. Add any arithmetic instruction in the given instruction set. Write a program using the new instruction. Write the OS code demonstrating execution of this program. [Assume the program is already loaded in the main memory].
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+char M[200][5];
+char IR[5];
+char R[5];
+
+int IC;
+
+void executeUserProgram()
+{
+    while(1)
+    {
+        // Fetch instruction
+        strcpy(IR, M[IC]);
+
+        IC++;
+
+        // GD
+        if(IR[0]=='G' && IR[1]=='D')
+        {
+            int loc = (IR[2]-'0')*10 + (IR[3]-'0');
+
+            printf("Enter data: ");
+            scanf("%s", M[loc]);
+        }
+
+        // PD
+        else if(IR[0]=='P' && IR[1]=='D')
+        {
+            int loc = (IR[2]-'0')*10 + (IR[3]-'0');
+
+            printf("Output: %s\n", M[loc]);
+        }
+
+        // LR
+        else if(IR[0]=='L' && IR[1]=='R')
+        {
+            int loc = (IR[2]-'0')*10 + (IR[3]-'0');
+
+            strcpy(R, M[loc]);
+        }
+
+        // SR
+        else if(IR[0]=='S' && IR[1]=='R')
+        {
+            int loc = (IR[2]-'0')*10 + (IR[3]-'0');
+
+            strcpy(M[loc], R);
+        }
+
+        // AD
+        else if(IR[0]=='A' && IR[1]=='D')
+        {
+            int loc = (IR[2]-'0')*10 + (IR[3]-'0');
+
+            int a = atoi(R);
+
+            int b = atoi(M[loc]);
+
+            int sum = a + b;
+
+            sprintf(R, "%d", sum);
+        }
+
+        // H
+        else if(IR[0]=='H')
+        {
+            break;
+        }
+    }
+}
+
+int main()
+{
+    // Program loaded in memory
+    strcpy(M[0], "GD10");
+    strcpy(M[1], "GD20");
+    strcpy(M[2], "LR10");
+    strcpy(M[3], "AD20");
+    strcpy(M[4], "SR30");
+    strcpy(M[5], "PD30");
+    strcpy(M[6], "H");
+
+    IC = 0;
+
+    executeUserProgram();
+
+    return 0;
+}
+
+
+
+
+Consider the virtual machine with one general purpose register of 4 bytes, instruction register of 4 bytes, instruction counter of 2 bytes & toggle register of a bit. The instruction set consists of 7 instructions of 4 bytes each. (GD, PD, LR, SR, CR, BT & H). Consider the main memory of 400 words. Write a program to print welcome message in the input file. Write the OS code which will display & handle the invalid page fault. Consider the page size as 10 words.
+
+#include <iostream>
+#include <fstream>
+#include <string>
+
+using namespace std;
+
+// Main Memory
+char M[400][4];
+
+char IR[4];
+char R[4];
+
+int IC;
+int SI;
+int PI;
+
+int PTR;
+
+bool frameUsed[40];
+
+fstream infile;
+fstream outfile;
+
+// ================= INIT =================
+void INIT()
+{
+    for(int i=0;i<400;i++)
+    {
+        for(int j=0;j<4;j++)
+        {
+            M[i][j]=' ';
+        }
+    }
+
+    for(int i=0;i<4;i++)
+    {
+        IR[i]=' ';
+        R[i]=' ';
+    }
+
+    IC=0;
+    SI=0;
+    PI=0;
+
+    PTR=0;
+
+    for(int i=0;i<40;i++)
+    {
+        frameUsed[i]=false;
+    }
+}
+
+// ================= ALLOCATE FRAME =================
+int allocateFrame()
+{
+    for(int i=0;i<40;i++)
+    {
+        if(frameUsed[i]==false)
+        {
+            frameUsed[i]=true;
+
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+// ================= ADDRESS MAP =================
+int addressMap(int VA)
+{
+    int page = VA / 10;
+
+    int offset = VA % 10;
+
+    // PAGE NOT PRESENT
+    if(M[PTR + page][0]==' ')
+    {
+        PI=3;
+
+        return -1;
+    }
+
+    int frame =
+        (M[PTR + page][2]-'0')*10 +
+        (M[PTR + page][3]-'0');
+
+    return frame*10 + offset;
+}
+
+// ================= PD =================
+void PD()
+{
+    int loc =
+        (IR[2]-'0')*10 +
+        (IR[3]-'0');
+
+    int RA = addressMap(loc);
+
+    // Invalid Page Fault
+    if(PI==3)
+    {
+        return;
+    }
+
+    for(int i=0;i<10;i++)
+    {
+        for(int j=0;j<4;j++)
+        {
+            outfile << M[RA+i][j];
+        }
+    }
+
+    outfile << endl;
+}
+
+// ================= H =================
+void H()
+{
+    outfile << "\nPROGRAM TERMINATED\n";
+}
+
+// ================= MOS =================
+void MOS()
+{
+    // INVALID PAGE FAULT
+    if(PI==3)
+    {
+        outfile << "ERROR : INVALID PAGE FAULT\n";
+
+        return;
+    }
+
+    if(SI==2)
+    {
+        PD();
+    }
+
+    else if(SI==3)
+    {
+        H();
+    }
+
+    SI=0;
+}
+
+// ================= EXECUTE =================
+void EXECUTE_USER_PROGRAM()
+{
+    while(true)
+    {
+        int RA = addressMap(IC);
+
+        // Fetch instruction
+        if(PI==3)
+        {
+            MOS();
+            break;
+        }
+
+        for(int i=0;i<4;i++)
+        {
+            IR[i]=M[RA][i];
+        }
+
+        IC++;
+
+        // PD
+        if(IR[0]=='P' && IR[1]=='D')
+        {
+            int operand =
+                (IR[2]-'0')*10 +
+                (IR[3]-'0');
+
+            int map = addressMap(operand);
+
+            // INVALID PAGE FAULT
+            if(PI==3)
+            {
+                MOS();
+                break;
+            }
+
+            SI=2;
+            MOS();
+        }
+
+        // H
+        else if(IR[0]=='H')
+        {
+            SI=3;
+            MOS();
+            break;
+        }
+    }
+}
+
+// ================= START =================
+void START_EXECUTION()
+{
+    IC=0;
+
+    EXECUTE_USER_PROGRAM();
+}
+
+// ================= LOAD =================
+void LOAD()
+{
+    infile.open("input.txt",ios::in);
+
+    outfile.open("output.txt",ios::out);
+
+    string line;
+
+    int page=0;
+
+    while(getline(infile,line))
+    {
+        // $AMJ
+        if(line.substr(0,4)=="$AMJ")
+        {
+            INIT();
+
+            int ptFrame = allocateFrame();
+
+            PTR = ptFrame * 10;
+        }
+
+        // $DTA
+        else if(line.substr(0,4)=="$DTA")
+        {
+            START_EXECUTION();
+        }
+
+        // $END
+        else if(line.substr(0,4)=="$END")
+        {
+            continue;
+        }
+
+        // Program Cards
+        else
+        {
+            int frame = allocateFrame();
+
+            int frameAddress = frame * 10;
+
+            // Only first page loaded
+            M[PTR + page][0]='1';
+
+            M[PTR + page][2]=(frame/10)+'0';
+
+            M[PTR + page][3]=(frame%10)+'0';
+
+            page++;
+
+            int k=0;
+
+            for(int i=0;i<10;i++)
+            {
+                for(int j=0;j<4;j++)
+                {
+                    if(k < line.length())
+                    {
+                        M[frameAddress+i][j]=line[k++];
+                    }
+                    else
+                    {
+                        M[frameAddress+i][j]=' ';
+                    }
+                }
+            }
+        }
+    }
+
+    infile.close();
+    outfile.close();
+}
+
+int main()
+{
+    LOAD();
+
+    cout << "Execution Completed\n";
+
+    return 0;
+}
+
+Consider the virtual machine with one general purpose register of 4 bytes, instruction register of 4 bytes, instruction counter of 2 bytes & toggle register of a bit. The instruction set consists of 7 instructions of 4 bytes each. (GD, PD, LR, SR, CR, BT & H). Consider the main memory of 200 words. Write a program with two program cards in the input file. Write the OS code which will load the program in the memory.
+
+#include <stdio.h>
+#include <string.h>
+
+char M[200][4];
+char buffer[40];
+
+int main()
+{
+    FILE *fp;
+
+    fp = fopen("input.txt", "r");
+
+    int m = 0;
+
+    while(fgets(buffer, 40, fp))
+    {
+        if(buffer[0] == '$' && buffer[1] == 'D')
+            continue;
+
+        if(buffer[0] == '$' && buffer[1] == 'E')
+            break;
+
+        int k = 0;
+
+        while(k < strlen(buffer))
+        {
+            for(int j = 0; j < 4; j++)
+            {
+                M[m][j] = buffer[k];
+                k++;
+            }
+
+            m++;
+        }
+    }
+
+    fclose(fp);
+
+    printf("Program Loaded in Memory\n");
+
+    for(int i = 0; i < m; i++)
+    {
+        printf("%d\t", i);
+
+        for(int j = 0; j < 4; j++)
+        {
+            printf("%c", M[i][j]);
+        }
+
+        printf("\n");
+    }
+
+    return 0;
+}
+
+Consider the virtual machine with one general purpose register of 4 bytes, instruction register of 4 bytes, instruction counter of 2 bytes & toggle register of a bit. The instruction set consists of 7 instructions of 4 bytes each. (GD, PD, LR, SR, CR, BT & H). Consider the main memory of 200 words. Write a program to print Hello World in the input file. Write the OS code which will execute this program and display errors. [Assume the program is already loaded in the main memory].
+
+#include <iostream>
+#include <fstream>
+#include <string>
+
+using namespace std;
+
+char M[100][4];
+char IR[4];
+char R[4];
+
+int IC;
+int SI;
+int PI;
+
+fstream infile;
+fstream outfile;
+
+// ================= INIT =================
+void INIT()
+{
+    for(int i=0;i<100;i++)
+    {
+        for(int j=0;j<4;j++)
+        {
+            M[i][j]=' ';
+        }
+    }
+
+    for(int i=0;i<4;i++)
+    {
+        IR[i]=' ';
+        R[i]=' ';
+    }
+
+    IC=0;
+    SI=0;
+    PI=0;
+}
+
+// ================= READ =================
+void READ()
+{
+    string line;
+
+    getline(infile,line);
+
+    int loc =
+        (IR[2]-'0')*10 +
+        (IR[3]-'0');
+
+    int k=0;
+
+    for(int i=0;i<10;i++)
+    {
+        for(int j=0;j<4;j++)
+        {
+            if(k < line.length())
+            {
+                M[loc+i][j]=line[k++];
+            }
+            else
+            {
+                M[loc+i][j]=' ';
+            }
+        }
+    }
+}
+
+// ================= WRITE =================
+void WRITE()
+{
+    int loc =
+        (IR[2]-'0')*10 +
+        (IR[3]-'0');
+
+    for(int i=0;i<10;i++)
+    {
+        for(int j=0;j<4;j++)
+        {
+            outfile << M[loc+i][j];
+        }
+    }
+
+    outfile << endl;
+}
+
+// ================= TERMINATE =================
+void TERMINATE()
+{
+    outfile << "\nProgram Terminated\n";
+}
+
+// ================= MOS =================
+void MOS()
+{
+    // Service Interrupts
+    if(SI==1)
+    {
+        READ();
+    }
+
+    else if(SI==2)
+    {
+        WRITE();
+    }
+
+    else if(SI==3)
+    {
+        TERMINATE();
+    }
+
+    // Program Interrupts
+    if(PI==1)
+    {
+        outfile << "ERROR : OPERATION CODE ERROR\n";
+    }
+
+    else if(PI==2)
+    {
+        outfile << "ERROR : OPERAND ERROR\n";
+    }
+
+    SI=0;
+    PI=0;
+}
+
+// ================= EXECUTE =================
+void EXECUTE_USER_PROGRAM()
+{
+    while(true)
+    {
+        // FETCH
+        for(int i=0;i<4;i++)
+        {
+            IR[i]=M[IC][i];
+        }
+
+        IC++;
+
+        // ===== OPCODE VALIDATION =====
+        bool validOpcode=false;
+
+        if(
+            (IR[0]=='G' && IR[1]=='D') ||
+            (IR[0]=='P' && IR[1]=='D') ||
+            (IR[0]=='L' && IR[1]=='R') ||
+            (IR[0]=='S' && IR[1]=='R') ||
+            (IR[0]=='C' && IR[1]=='R') ||
+            (IR[0]=='B' && IR[1]=='T') ||
+            (IR[0]=='H')
+        )
+        {
+            validOpcode=true;
+        }
+
+        // OPCODE ERROR
+        if(validOpcode==false)
+        {
+            PI=1;
+            MOS();
+            break;
+        }
+
+        // ===== OPERAND VALIDATION =====
+        if(IR[0]!='H')
+        {
+            if(
+                IR[2]<'0' || IR[2]>'9' ||
+                IR[3]<'0' || IR[3]>'9'
+            )
+            {
+                PI=2;
+                MOS();
+                break;
+            }
+        }
+
+        // ===== EXECUTION =====
+
+        // GD
+        if(IR[0]=='G' && IR[1]=='D')
+        {
+            SI=1;
+            MOS();
+        }
+
+        // PD
+        else if(IR[0]=='P' && IR[1]=='D')
+        {
+            SI=2;
+            MOS();
+        }
+
+        // H
+        else if(IR[0]=='H')
+        {
+            SI=3;
+            MOS();
+            break;
+        }
+    }
+}
+
+// ================= START =================
+void START_EXECUTION()
+{
+    IC=0;
+
+    EXECUTE_USER_PROGRAM();
+}
+
+// ================= LOAD =================
+void LOAD()
+{
+    infile.open("input.txt",ios::in);
+    outfile.open("output.txt",ios::out);
+
+    string line;
+
+    int m=0;
+
+    while(getline(infile,line))
+    {
+        // $AMJ
+        if(line.substr(0,4)=="$AMJ")
+        {
+            INIT();
+        }
+
+        // $DTA
+        else if(line.substr(0,4)=="$DTA")
+        {
+            START_EXECUTION();
+        }
+
+        // $END
+        else if(line.substr(0,4)=="$END")
+        {
+            continue;
+        }
+
+        // Program Cards
+        else
+        {
+            int k=0;
+
+            for(int i=0;i<line.length()/4;i++)
+            {
+                for(int j=0;j<4;j++)
+                {
+                    M[m][j]=line[k++];
+                }
+
+                m++;
+            }
+        }
+    }
+
+    infile.close();
+    outfile.close();
+}
+
+
+int main()
+{
+    LOAD();
+
+    cout << "Execution Completed\n";
+
+    return 0;
+}
+
+Consider the virtual machine with one general purpose register of 4 bytes, instruction register of 4 bytes, instruction counter of 2 bytes & toggle register of a bit. The instruction set consists of 7 instructions of 4 bytes each. (GD, PD, LR, SR, CR, BT & H). Consider the main memory of 400 words. Write a program to print welcome message in the input file. Write the OS code which will display & handle the valid page fault. Consider the page size as 10 words.
+
+#include <iostream>
+#include <fstream>
+#include <string>
+
+using namespace std;
+
+// Main Memory
+char M[400][4];
+
+char IR[4];
+char R[4];
+
+int IC;
+int SI;
+int PI;
+
+int PTR;
+
+bool frameUsed[40];
+
+fstream infile;
+fstream outfile;
+
+// ================= INIT =================
+void INIT()
+{
+    for(int i=0;i<400;i++)
+    {
+        for(int j=0;j<4;j++)
+        {
+            M[i][j]=' ';
+        }
+    }
+
+    for(int i=0;i<4;i++)
+    {
+        IR[i]=' ';
+        R[i]=' ';
+    }
+
+    IC=0;
+    SI=0;
+    PI=0;
+
+    PTR=0;
+
+    for(int i=0;i<40;i++)
+    {
+        frameUsed[i]=false;
+    }
+}
+
+// ================= ALLOCATE FRAME =================
+int allocateFrame()
+{
+    for(int i=0;i<40;i++)
+    {
+        if(frameUsed[i]==false)
+        {
+            frameUsed[i]=true;
+
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+// ================= ADDRESS MAP =================
+int addressMap(int VA)
+{
+    int page = VA / 10;
+
+    int offset = VA % 10;
+
+    // Page Fault
+    if(M[PTR + page][0] == ' ')
+    {
+        PI = 3;
+        return -1;
+    }
+
+    int frame =
+        (M[PTR + page][2]-'0')*10 +
+        (M[PTR + page][3]-'0');
+
+    return frame*10 + offset;
+}
+
+// ================= VALID PAGE FAULT =================
+void validPageFault()
+{
+    int page =
+        ((IR[2]-'0')*10 + (IR[3]-'0')) / 10;
+
+    int frame = allocateFrame();
+
+    // Update Page Table
+    M[PTR + page][0]='1';
+
+    M[PTR + page][2]=(frame/10)+'0';
+
+    M[PTR + page][3]=(frame%10)+'0';
+
+    cout << "Valid Page Fault Handled\n";
+}
+
+// ================= GD =================
+void GD()
+{
+    string line;
+
+    getline(infile,line);
+
+    int loc =
+        (IR[2]-'0')*10 +
+        (IR[3]-'0');
+
+    int RA = addressMap(loc);
+
+    int k=0;
+
+    for(int i=0;i<10;i++)
+    {
+        for(int j=0;j<4;j++)
+        {
+            if(k < line.length())
+            {
+                M[RA+i][j]=line[k++];
+            }
+            else
+            {
+                M[RA+i][j]=' ';
+            }
+        }
+    }
+}
+
+// ================= PD =================
+void PD()
+{
+    int loc =
+        (IR[2]-'0')*10 +
+        (IR[3]-'0');
+
+    int RA = addressMap(loc);
+
+    for(int i=0;i<10;i++)
+    {
+        for(int j=0;j<4;j++)
+        {
+            outfile << M[RA+i][j];
+        }
+    }
+
+    outfile << endl;
+}
+
+// ================= H =================
+void H()
+{
+    outfile << "\nPROGRAM TERMINATED\n";
+}
+
+// ================= MOS =================
+void MOS()
+{
+    // Valid Page Fault
+    if(PI==3)
+    {
+        // Only GD and SR can cause valid PF
+        if(
+            (IR[0]=='G' && IR[1]=='D') ||
+            (IR[0]=='S' && IR[1]=='R')
+        )
+        {
+            validPageFault();
+
+            PI=0;
+
+            IC--;
+
+            return;
+        }
+        else
+        {
+            outfile << "INVALID PAGE FAULT\n";
+            return;
+        }
+    }
+
+    if(SI==1)
+    {
+        GD();
+    }
+
+    else if(SI==2)
+    {
+        PD();
+    }
+
+    else if(SI==3)
+    {
+        H();
+    }
+
+    SI=0;
+}
+
+// ================= EXECUTE =================
+void EXECUTE_USER_PROGRAM()
+{
+    while(true)
+    {
+        int RA = addressMap(IC);
+
+        // Handle Page Fault
+        if(PI==3)
+        {
+            MOS();
+            continue;
+        }
+
+        // FETCH
+        for(int i=0;i<4;i++)
+        {
+            IR[i]=M[RA][i];
+        }
+
+        IC++;
+
+        // GD
+        if(IR[0]=='G' && IR[1]=='D')
+        {
+            int operand =
+                (IR[2]-'0')*10 +
+                (IR[3]-'0');
+
+            int map = addressMap(operand);
+
+            // Valid PF
+            if(PI==3)
+            {
+                MOS();
+                IC--;
+                continue;
+            }
+
+            SI=1;
+            MOS();
+        }
+
+        // PD
+        else if(IR[0]=='P' && IR[1]=='D')
+        {
+            SI=2;
+            MOS();
+        }
+
+        // H
+        else if(IR[0]=='H')
+        {
+            SI=3;
+            MOS();
+            break;
+        }
+    }
+}
+
+// ================= START =================
+void START_EXECUTION()
+{
+    IC=0;
+
+    EXECUTE_USER_PROGRAM();
+}
+
+// ================= LOAD =================
+void LOAD()
+{
+    infile.open("input.txt",ios::in);
+
+    outfile.open("output.txt",ios::out);
+
+    string line;
+
+    int page=0;
+
+    while(getline(infile,line))
+    {
+        // $AMJ
+        if(line.substr(0,4)=="$AMJ")
+        {
+            INIT();
+
+            int ptFrame = allocateFrame();
+
+            PTR = ptFrame * 10;
+        }
+
+        // $DTA
+        else if(line.substr(0,4)=="$DTA")
+        {
+            START_EXECUTION();
+        }
+
+        // $END
+        else if(line.substr(0,4)=="$END")
+        {
+            continue;
+        }
+
+        // Program Cards
+        else
+        {
+            int frame = allocateFrame();
+
+            int frameAddress = frame * 10;
+
+            // Page Table Entry
+            M[PTR + page][0]='1';
+
+            M[PTR + page][2]=(frame/10)+'0';
+
+            M[PTR + page][3]=(frame%10)+'0';
+
+            page++;
+
+            int k=0;
+
+            for(int i=0;i<10;i++)
+            {
+                for(int j=0;j<4;j++)
+                {
+                    if(k < line.length())
+                    {
+                        M[frameAddress+i][j]=line[k++];
+                    }
+                    else
+                    {
+                        M[frameAddress+i][j]=' ';
+                    }
+                }
+            }
+        }
+    }
+
+    infile.close();
+    outfile.close();
+}
+
+int main()
+{
+    LOAD();
+
+    cout << "Execution Completed\n";
+
+    return 0;
+}
+
+Consider the virtual machine with one general purpose register of 4 bytes, instruction register of 4 bytes, instruction counter of 2 bytes & toggle register of a bit. The instruction set consists of 7 instructions of 4 bytes each. (GD, PD, LR, SR, CR, BT & H). Consider the main memory of 400 words. Write a program to print welcome message in the input file. Write the OS code which will load this program from the input device into the main memory using paging. Consider the page size as 10 words.
+
+#include <stdio.h>
+#include <string.h>
+
+char M[400][5];
+char buffer[40];
+
+int main()
+{
+    FILE *fp;
+
+    fp = fopen("input.txt", "r");
+
+    if(fp == NULL)
+    {
+        printf("File not found\n");
+        return 0;
+    }
+
+    int page = 0;
+    int offset = 0;
+
+    while(fgets(buffer, 40, fp))
+    {
+        // Ignore control cards
+        if(buffer[0] == '$')
+            continue;
+
+        // Remove newline
+        buffer[strcspn(buffer, "\n")] = '\0';
+
+        int k = 0;
+
+        while(k < strlen(buffer))
+        {
+            char word[5];
+
+            for(int j = 0; j < 4 && k < strlen(buffer); j++)
+            {
+                word[j] = buffer[k];
+                k++;
+            }
+
+            word[4] = '\0';
+
+            // Calculate memory location using paging
+            int loc = page * 10 + offset;
+
+            strcpy(M[loc], word);
+
+            offset++;
+
+            // If page full
+            if(offset == 10)
+            {
+                page++;
+                offset = 0;
+            }
+        }
+    }
+
+    fclose(fp);
+
+    printf("Program Loaded Using Paging\n\n");
+
+    // Display memory
+    for(int i = 0; i < 30; i++)
+    {
+        if(strlen(M[i]) > 0)
+        {
+            printf("%d\t%s\n", i, M[i]);
+        }
+    }
+
+    return 0;
+}#include <stdio.h>
+#include <string.h>
+
+char M[400][5];
+char buffer[40];
+
+int main()
+{
+    FILE *fp;
+
+    fp = fopen("input.txt", "r");
+
+    if(fp == NULL)
+    {
+        printf("File not found\n");
+        return 0;
+    }
+
+    int page = 0;
+    int offset = 0;
+
+    while(fgets(buffer, 40, fp))
+    {
+        // Ignore control cards
+        if(buffer[0] == '$')
+            continue;
+
+        // Remove newline
+        buffer[strcspn(buffer, "\n")] = '\0';
+
+        int k = 0;
+
+        while(k < strlen(buffer))
+        {
+            char word[5];
+
+            for(int j = 0; j < 4 && k < strlen(buffer); j++)
+            {
+                word[j] = buffer[k];
+                k++;
+            }
+
+            word[4] = '\0';
+
+            // Calculate memory location using paging
+            int loc = page * 10 + offset;
+
+            strcpy(M[loc], word);
+
+            offset++;
+
+            // If page full
+            if(offset == 10)
+            {
+                page++;
+                offset = 0;
+            }
+        }
+    }
+
+    fclose(fp);
+
+    printf("Program Loaded Using Paging\n\n");
+
+    // Display memory
+    for(int i = 0; i < 30; i++)
+    {
+        if(strlen(M[i]) > 0)
+        {
+            printf("%d\t%s\n", i, M[i]);
+        }
+    }
+
+    return 0;
+}
+
+Consider the virtual machine with one general purpose register of 4 bytes, instruction register of 4 bytes, instruction counter of 2 bytes & toggle register of a bit. The instruction set consists of 7 instructions of 4 bytes each. (GD, PD, LR, SR, CR, BT & H). Consider the main memory of 200 words. Write a program with time limit & line limit exceeded error. Write the OS code which will execute this program and display errors. [Assume the program is already loaded in the main memory].
+
+#include<iostream>
+using namespace std;
+
+string M[100];
+
+string IR;
+
+int IC=0;
+
+int TTC=0;
+
+int TTL=3;
+
+void TERMINATE()
+{
+    cout<<"TIME LIMIT EXCEEDED";
+}
+
+void EXECUTE()
+{
+    while(true)
+    {
+        IR=M[IC];
+
+        IC++;
+
+        TTC++;
+
+        if(TTC > TTL)
+        {
+            TERMINATE();
+
+            break;
+        }
+
+        if(IR[0]=='H')
+            break;
+    }
+}
+
+int main()
+{
+    M[0]="GD20";
+    M[1]="PD20";
+    M[2]="PD20";
+    M[3]="PD20";
+    M[4]="H   ";
+
+    EXECUTE();
+
+    return 0;
+}
+
+line limit exceeded
+#include<iostream>
+using namespace std;
+
+string M[100];
+
+string IR;
+
+int IC=0;
+
+int LLC=0;
+
+int TLL=2;
+
+void TERMINATE()
+{
+    cout<<"LINE LIMIT EXCEEDED";
+}
+
+void WRITE()
+{
+    LLC++;
+
+    cout<<"OUTPUT LINE"<<endl;
+
+    if(LLC > TLL)
+    {
+        TERMINATE();
+
+        exit(0);
+    }
+}
+
+void EXECUTE()
+{
+    while(true)
+    {
+        IR=M[IC];
+
+        IC++;
+
+        if(IR[0]=='P' && IR[1]=='D')
+        {
+            WRITE();
+        }
+
+        else if(IR[0]=='H')
+        {
+            break;
+        }
+    }
+}
+
+int main()
+{
+    M[0]="PD20";
+    M[1]="PD20";
+    M[2]="PD20";
+    M[3]="H   ";
+
+    EXECUTE();
+
+    return 0;
+}
